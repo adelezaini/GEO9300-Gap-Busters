@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 # Read the CSV file
-df = pd.read_csv("/home/mlahlbac/COURSES/Geophysical_data_science/Tuddal_data.csv", na_values=np.nan)
+df = pd.read_csv("../data/Tuddal_data.csv", na_values=np.nan)
 
 # Drop rows with NaN values in the 'LE_qc0' column
 df = df.dropna(subset=['LE_qc0']) 
@@ -22,7 +22,6 @@ X = df[["wind_speed",
         "R_LW_out_corr",
         "specific_humidity", 
         "air_pressure", 
-        "precip_int_h_D", 
         "FC1DRIFTsum_99_99_1_1_1", 
         "FC2DRIFTsum_99_99_1_1_1"]]
 

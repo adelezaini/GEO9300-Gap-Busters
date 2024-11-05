@@ -8,14 +8,14 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Input, Dense, Dropout
 
 # Load and prepare the data
-df = pd.read_csv("/home/mlahlbac/COURSES/Geophysical_data_science/Tuddal_data.csv", na_values=np.nan)
+df = pd.read_csv("../data/Tuddal_data.csv", na_values=np.nan)
 
 df["albedo"] = df['R_SW_in'] / df['R_LW_out_corr']
 
 # Define features and target variable
 features = ["wind_speed", "max_wind_speed", "R_SW_in", "precip_int_h_D", "albedo",
         "air_temperature", "wind_dir", "specific_humidity",
-        "air_pressure", "precip_int_h_D", 
+        "air_pressure", 
         "FC1DRIFTsum_99_99_1_1_1", "FC2DRIFTsum_99_99_1_1_1"]
 
 df = df.dropna(subset=['LE_qc0']) 
