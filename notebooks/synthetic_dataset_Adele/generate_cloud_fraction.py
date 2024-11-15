@@ -50,9 +50,9 @@ def main():
     cloud_fraction_df = cloud_fraction.to_frame(name="Cloud Fraction")
     
     # Export the DataFrame to a CSV file
-    cloud_fraction_df.to_csv("../../data/postprocessed_synthetic_dataset/cloud_fraction_2019_postprocessed.csv")
+    cloud_fraction_df.to_csv("../../data/synthetic_dataset/cloud_fraction.csv")
 
-    print("Cloud Fraction successfully saved in data/postprocessed_synthetic_dataset.")
+    print("Cloud Fraction successfully saved in data/synthetic_dataset.")
 
 if __name__ == "__main__":
     main()
