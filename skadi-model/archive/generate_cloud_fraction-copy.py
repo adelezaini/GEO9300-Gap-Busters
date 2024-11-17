@@ -4,7 +4,7 @@ import numpy as np
 from numpy.polynomial.polynomial import Polynomial
 
 def open_file(variable_name):
-    file_path = "../../data/input_synthetic_dataset/"+variable_name+"_Tuddal_2019.csv"
+    file_path = "../data/input_synthetic_dataset/"+variable_name+"_Tuddal_2019.csv"
     return pd.read_csv(file_path, index_col="time", parse_dates=True)
 
 def main():
@@ -50,7 +50,7 @@ def main():
     cloud_fraction_df = cloud_fraction.to_frame(name="Cloud Fraction")
     
     # Export the DataFrame to a CSV file
-    cloud_fraction_df.to_csv("../../data/synthetic_dataset/cloud_fraction.csv")
+    cloud_fraction_df.to_csv("../data/synthetic_dataset/cloud_fraction.csv")
 
     print("Cloud Fraction successfully saved in data/synthetic_dataset.")
 

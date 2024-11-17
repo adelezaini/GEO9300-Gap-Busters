@@ -1,0 +1,1 @@
+Data from 'met_analysis_1_0km_nordic_v3_yr_20161108_20240528_formatSURFEXnewTuddal.nc'. Each variable has been 'unpacked' from the xarray Dataset into a csv file. Just the 2019 year has been taken into acount in the time series. This are input variables to generate the synthetic dataset.
