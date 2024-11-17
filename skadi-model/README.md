@@ -13,7 +13,7 @@ Input variables - time series:
 - Qair: near surface specific humidity [kg/kg]
 - Wind: wind speed [m/s]
 
-Output variables - time series:
+Output variables - time series: (TBD)
 
 - cloud_fraction:
 - snow_cover_fraction:
@@ -27,3 +27,5 @@ Output variables - time series:
 - Qs:
 
 Equations and parametrizations can be found in equations.py
+
+Assumptions: (TBD)
