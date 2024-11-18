@@ -17,8 +17,8 @@ Cp = 1005  # Specific heat capacity of air at constant pressure (J/(kg*K))
 Ch = 0.001  # Bulk transfer coefficient for sensible heat
 
 # Albedo values - adjusted after seeing model results
-alpha_snow = 0.7  # Albedo for snow-covered surface (average albedo of snow) (old:0.8)
-alpha_veg = 0.2  # Albedo for shrubs (old: 0.15)
+albedo_snow = 0.7  # Albedo for snow-covered surface (average albedo of snow) (old:0.8)
+albedo_veg = 0.2  # Albedo for shrubs (old: 0.15)
 
 P = 1013.25  # Atmospheric pressure (hPa)
 
@@ -64,6 +64,8 @@ def specific_humidity(T, RH):
 def energy_balance(SWin, SWout, LWin, LWout, SH, LE):
   return SWin - SWout + LWin - LWout - SH - LE
   
+  
+############## SURFACE RELATIVE HUMIDITY
 # Adjustment for surface relative humidity from air relative humidity
 def surface_relative_humidity(RH_air, Ts, Ta, prec, snow_cover, u):
     """ Author: perplexity.ai
@@ -96,7 +98,6 @@ def surface_relative_humidity(RH_air, Ts, Ta, prec, snow_cover, u):
     RH_surface = np.clip(RH_surface, 0, 1)
     
     return RH_surface
-    
     
     
 ############## CLOUD FRACTION
@@ -138,17 +139,19 @@ def cloud_fraction(LWin):
 
     cloud_fraction = difference_constrained/cutoff_value
 
-    return cloud_fraction.to_frame(name="CloudFrac")
+    return cloud_fraction # pd.Series
     
     
     
 ############## SNOW COVER FRACTION
-def snow_accumulation(data):
-    
-    data['snow_fall'] = data['Snowf'] * 3600 #mm # Convert snowfall rate to snow cover (kg/m² to mm of snow equivalent)
-    data['cumulative_snow_cover'] = data['snow_fall'].cumsum() # Calculate cumulative snow cover over time
 
-    return data
+def snow_accumulation(snowfallrate):
+
+    snow_fall = snowfallrate * 3600 #mm # Convert snowfall rate to snow cover (kg/m² to mm of snow equivalent)
+    cumulative_snow = snow_fall.cumsum() # Calculate cumulative snow cover over time
+
+    return snow_fall, cumulative_snow
+    
     
 def snow_melt_model(T_air, RH, rainfall, time_step_hours=1):
     """
@@ -188,7 +191,8 @@ def snow_melt_model(T_air, RH, rainfall, time_step_hours=1):
 
     return total_melt, M_T, M_R, M_H
     
-def snow_cover_fraction(snow_depth, complete_cover_threshold=100):
+    
+def evaluate_snow_cover_fraction(snow_depth, complete_cover_threshold=100):
     """
     Estimate snow cover fraction from snow depth.
     
@@ -205,23 +209,14 @@ def snow_cover_fraction(snow_depth, complete_cover_threshold=100):
     
     # Calculate snow cover fraction using a logistic function
     fraction = 1 / (1 + np.exp(-k * (snow_depth - x0)))
+
+    # rescale in 0-1 (the logistic correction doesn't allow the snowcover to reach 0)
+    min_val = np.min(fraction)
+    max_val = np.max(fraction)
+    fraction = (fraction - min_val) / (max_val - min_val)
     
     return fraction
-    
-    
-    
-    
-########## SURFACE TEMPERATURE CONSTRAIN
-"""
-def T_constrain(Ts, Tair, snow_cover, prec):
-  #Avoid Ts, when evaluated numerically, to be too far off compared to the Tair
-  if snow_cover > 0.5:  # High snow cover: limit Ts deviation
-      Ts = max(min(Ts, Tair + 2), Tair - 2)  # Allow a 2 K deviation from Tair
-  elif prec > 0:  # During precipitation: keep Ts closer to Tair
-      Ts = max(min(Ts, Tair + 5), Tair - 5)  # Allow a 5 K deviation from Tair
-  else:  # No snow/precip: allow more variability
-      Ts = max(min(Ts, Tair + 10), Tair - 10)  # Allow up to 10 K deviation
-  return Ts"""
+
     
     
 

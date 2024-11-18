@@ -1,4 +1,5 @@
 Simple surface energy balance model, dependent on snow cover - Skadi is the Norse goddess of snow :)
+
 Developped to generate the synthetic dataset.
 
 Input variables - time series:
@@ -29,3 +30,6 @@ Output variables - time series: (TBD)
 Equations and parametrizations can be found in equations.py
 
 Assumptions: (TBD)
+
+Designed by: Malin Ahlbäck, Eivind W. Ånes, Adele Zaini
+Developped by: Adele Zaini by the help of Perplexity.ai and ChatGPT
