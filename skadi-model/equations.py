@@ -25,8 +25,9 @@ P = 1013.25  # Atmospheric pressure (hPa)
 ####### Equations and parametrizations ##################
 
 ############## ALBEDO
-def surface_albedo(snow_cover_fraction): # snow cover fraction spans [0,1]
-    return snow_cover_fraction * (alpha_snow - alpha_veg) + alpha_veg #rescale the snow_fraction to [0.15-0.8]
+def surface_albedo(snow_cover): # snow cover fraction spans [0,1]
+    return snow_cover * albedo_snow + (1 - snow_cover) * albedo_veg
+    #snow_cover_fraction * (alpha_snow - alpha_veg) + alpha_veg #rescale the snow_fraction to [0.15-0.8]
 
 ############## ENERGY BALANCE EQUATION
 # Outgoing shortwave radiation
@@ -206,6 +207,21 @@ def snow_cover_fraction(snow_depth, complete_cover_threshold=100):
     fraction = 1 / (1 + np.exp(-k * (snow_depth - x0)))
     
     return fraction
+    
+    
+    
+    
+########## SURFACE TEMPERATURE CONSTRAIN
+"""
+def T_constrain(Ts, Tair, snow_cover, prec):
+  #Avoid Ts, when evaluated numerically, to be too far off compared to the Tair
+  if snow_cover > 0.5:  # High snow cover: limit Ts deviation
+      Ts = max(min(Ts, Tair + 2), Tair - 2)  # Allow a 2 K deviation from Tair
+  elif prec > 0:  # During precipitation: keep Ts closer to Tair
+      Ts = max(min(Ts, Tair + 5), Tair - 5)  # Allow a 5 K deviation from Tair
+  else:  # No snow/precip: allow more variability
+      Ts = max(min(Ts, Tair + 10), Tair - 10)  # Allow up to 10 K deviation
+  return Ts"""
     
     
 
