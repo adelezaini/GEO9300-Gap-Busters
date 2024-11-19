@@ -278,11 +278,12 @@ plt.show()
 
 # structured gaps:
 ds_structured = syn_ds[['time', 'LE_gaps_structured']]
+ds_structured = ds_structured.rename(columns={"LE_gaps_structured": "LE_gaps"})
 
 ds_structured.to_csv('../data/LE-gaps/structured_gaps_5.csv', index=False)
 
 # random gaps:
 ds_random = syn_ds[['time', 'LE_gaps_random']]
+ds_random = ds_random.rename(columns={"LE_gaps_random": "LE_gaps"})
 ds_random.to_csv('../data/LE-gaps/random_gaps_5.csv', index=False)
 
-# %%
