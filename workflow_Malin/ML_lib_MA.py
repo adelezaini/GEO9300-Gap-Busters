@@ -160,6 +160,7 @@ def model_tuning_CV(X_train, y_train, model, hyperparameters, cv = cv , scoring 
         object: Best model fitted on the training data.
     """
     try:
+        print(X_train)
         # Initialize GridSearchCV
         grid_search = GridSearchCV(
             estimator=model,
@@ -175,8 +176,8 @@ def model_tuning_CV(X_train, y_train, model, hyperparameters, cv = cv , scoring 
         best_params = grid_search.best_params_
         best_model = grid_search.best_estimator_
         
-        print(f"Best Parameters: {best_params}")
-        print(f"Best CV Score: {grid_search.best_score_:.2f}")
+      #  print(f"Best Parameters: {best_params}")
+      #  print(f"Best CV Score: {grid_search.best_score_:.2f}")
         
         # Get all hyperparameter results
         cv_results = grid_search.cv_results_
@@ -228,3 +229,20 @@ def evaluate_model(model, X_test, y_test, scoring ='r2'):
         print(f"Error during model evaluation: {e}")
         return None
 
+#------------------------- Save cross-validation results to CSV: ------------------------------#
+# save to csv:
+
+def save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv=True):
+    """
+    Save cross-validation results to a CSV file.
+
+    Parameters:
+    cv_results (dict): Cross-validation results.
+    algorithm (str): Name of the algorithm.
+    gaps_data_file (str): Name of the gaps data file.
+    CV_scoring (str): Scoring metric used for cross-validation.
+    save_to_csv (bool): Flag to save the results to CSV. Default is True.
+    """
+    if save_to_csv:
+        cv_results_df = pd.DataFrame(cv_results)
+        cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_{CV_scoring}_cv_results.csv', index=False)

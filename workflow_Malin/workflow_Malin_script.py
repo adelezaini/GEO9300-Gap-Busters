@@ -11,8 +11,16 @@ from sklearn.linear_model import LinearRegression
 #from tensorflow.keras import Sequential
 #from tensorflow.keras.layers import Input, Dense, Dropout, LSTM
 #from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
-#import xgboost as xgb
-#from bartpy.sklearnmodel import SklearnModel as BART
+import xgboost as xgb
+
+
+# importing BART:(not adapted for other users)
+import sys
+bartpy_path = '/home/mlahlbac/projects/BART/bartpy/'
+sys.path.append(os.path.abspath(bartpy_path))
+from bartpy.sklearnmodel import SklearnModel
+
+
 
 print("Imported libraries\n")
 
@@ -23,7 +31,8 @@ print("Imported libraries\n")
 # - machine learning models and applying hyperparameter search grids
 
 #### to change: import from external argument ###
-algorithm = 'random_forest' #look below for the options
+# 'linear_regression', 'random_forest', 'neural_network', 'lstm', 'xgboost', 'bart'
+algorithm = 'bart'
 scoring_metrics = 'r2' #or 'mse'
 
 print(f"Machine Learning method: {algorithm}")
@@ -50,11 +59,14 @@ features = [
     ]
 
 # Choose the gaps dataset - either structured or random gaps
-gaps_data_file = 'random_gaps_1' # 'random_gaps_1' -- values from 1 to 5 for diff versions
+gaps_data_file = 'structured_gaps_1' # 'random_gaps_1' -- values from 1 to 5 for diff versions
 
 # Define the cross-validation strategy:
 CV_scoring = 'neg_mean_absolute_error'   # e.g. 'neg_mean_squared_error', 'r2', 'neg_root_mean_squared_error. More available methods for regression evaluation (scoring): https://scikit-learn.org/1.5/modules/model_evaluation.html#scoring-parameter)
 cv = 3  # Number of cross-validation folds
+
+print(f"Using gaps data file: {gaps_data_file}")
+print(f"Using CV_scoring: {CV_scoring}")
 
 
 ################################################################################
@@ -177,9 +189,10 @@ def machine_learning_method(algorithm):
         print(f"Test Metrics: {RF_metrics}")
 
         # save to csv
-        if save_to_csv == True:
-            cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
+        save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
+    #    if save_to_csv == True:
+     #       cv_results_df = pd.DataFrame(cv_results)
+      #      cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
         #-------------------------------------------------------------------------------
     elif algorithm == 'neural_network':
     
@@ -219,9 +232,10 @@ def machine_learning_method(algorithm):
         print(f"Best Parameters: {NN_best_params}")
         print(f"Test Metrics: {NN_metrics}")
         # save to csv
-        if save_to_csv == True:
-            cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
+        save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
+       # if save_to_csv == True:
+       #     cv_results_df = pd.DataFrame(cv_results)
+       #     cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
         #-------------------------------------------------------------------------------
     elif algorithm == 'lstm':
     
@@ -259,12 +273,46 @@ def machine_learning_method(algorithm):
         print(f"Best Parameters: {LSTM_best_params}")
         print(f"Test Metrics: {LSTM_metrics}")
         # save to csv
-        if save_to_csv == True:
-            cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
+        save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
+      #  if save_to_csv == True:
+      #      cv_results_df = pd.DataFrame(cv_results)
+      #      cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
 
-    ############## TO FINISH WITH XGBOOST AND BART ##############
-    ############## NO NEED FOR SCALING #############
+        #-------------------------------------------------------------------------------
+    elif algorithm == 'bart':
+        
+        # BAYESIAN ADDITIVE REGRESSION TREES (BART)
+
+       # Split training and testing datasets
+        X_train, y_train, X_test, y_test = split_train_test_dataset(X, y)
+ 
+        BART_model = SklearnModel(n_trees=50, n_burn=250, n_samples=100)
+
+        # Hyperparameter tuning
+        param_grid_bart = {
+            'n_trees': [50, 100],
+            'n_burn': [200, 250],
+            'n_samples': [50, 100]
+        }
+
+        try:
+            BART_best_model, BART_best_params, cv_results = model_tuning_CV(X_train, y_train, BART_model, param_grid_bart, cv, CV_scoring)
+            BART_metrics = evaluate_model(BART_best_model, X_test, y_test, scoring_metrics)
+
+            print("\n=== BART RESULTS ===")
+            print(f"Best Parameters: {BART_best_params}")
+            print(f"Test Metrics: {BART_metrics}")
+            # save to csv
+            save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
+         #   if save_to_csv == True:
+         #       cv_results_df = pd.DataFrame(cv_results)
+         #       cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
+
+        except Exception as e:
+            print(f"An error occurred during BART tuning: {e}")
+
+
+
 
 # Perform the function
 machine_learning_method(algorithm)
