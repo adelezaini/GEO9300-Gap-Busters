@@ -31,7 +31,11 @@ def model_tuning_CV(model, hyperparameters, cv, scoring):
     best_model = grid_search.best_estimator_
     y_pred = best_model.predict(X_test)
 
-    return best_params, y_pred
+        # Get all hyperparameter results
+    cv_results = grid_search.cv_results_
+
+    return best_params, y_pred, cv_results
+
 
 
 #--------------------------------------------------------------------------------
