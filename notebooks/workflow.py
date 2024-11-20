@@ -202,7 +202,7 @@ def model_tuning_CV(model, hyperparameters, cv, scoring):
     """
     grid_search = GridSearchCV(estimator=model, param_grid=hyperparameters, cv=cv, n_jobs=-1, scoring=scoring, verbose=2)
     grid_search.fit(X_train, y_train)
-    best_params = grid_search.best_params
+    best_params = grid_search.best_params_
     print(f"Best Parameters: {best_params}")
     print(f'Best Score: {grid_search.best_score_:.2f}')
     
