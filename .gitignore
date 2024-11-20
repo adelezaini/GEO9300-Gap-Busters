@@ -1,2 +1,5 @@
 .DS_Store
 .ipynb_checkpoints/
+
+skadi-model/__pycache__/*
+notebooks/__pycache__/*
