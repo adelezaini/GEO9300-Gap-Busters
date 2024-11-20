@@ -3,7 +3,7 @@
 import pandas as pd
 import glob
 import os
-from workflow_Malin.ML_lib_MA import * 
+from ML_lib_MA import * 
 
 # packages:
 from sklearn.ensemble import RandomForestRegressor
@@ -30,7 +30,7 @@ print(f"Machine Learning method: {algorithm}")
 print(f"Evaluation metrics: {scoring_metrics}")
 
 # save hyperparameters for the run as csv file?
-save_to_csv = False
+save_to_csv = True
 
 ################################################################################
 ### Workflow Parameters
@@ -50,7 +50,7 @@ features = [
     ]
 
 # Choose the gaps dataset - either structured or random gaps
-gaps_data_file = 'structured_gaps_1' # 'random_gaps_1' -- values from 1 to 5 for diff versions
+gaps_data_file = 'random_gaps_1' # 'random_gaps_1' -- values from 1 to 5 for diff versions
 
 # Define the cross-validation strategy:
 CV_scoring = 'neg_mean_absolute_error'   # e.g. 'neg_mean_squared_error', 'r2', 'neg_root_mean_squared_error. More available methods for regression evaluation (scoring): https://scikit-learn.org/1.5/modules/model_evaluation.html#scoring-parameter)
@@ -66,26 +66,21 @@ cv = 3  # Number of cross-validation folds
 # a. Load single CSV files in separate dfs
 # b. Merge the dfs into one single "synthetic_dataset"
 
-folder_path = '../../data/synthetic_dataset'
 
-csv_files = glob.glob(os.path.join(folder_path, '*.csv')) # use glob library to find all CSV files
+# Load the synthetic dataset:
+folder_path = '../data/synthetic_dataset'
+csv_files = glob.glob(os.path.join(folder_path, '*.csv'))
 
-dfs = [] #to store individual DataFrames.
-
+dfs = []
 for file in csv_files:
     data = pd.read_csv(file, parse_dates=['time'], sep=',')
-    # 'parse_dates' argument ensures the 'time' column is interpreted as datetime objects.
-    
     dfs.append(data)
 
-syn_ds = dfs[0] # Start with the first DataFrame as the base for merging.
-
+syn_ds = dfs[0]
 for data in dfs[1:]:
-    # Merge each subsequent DataFrame with the base DataFrame (`syn_ds`).
-    # The merge is done using an ordered merge on the 'time' column.
-    # This ensures that the merged dataset remains sorted by 'time'.
     syn_ds = pd.merge_ordered(syn_ds, data, on='time')
 
+print(syn_ds.head())
 #-------------------------------------------------------------------------------
 # Features and target variables:
 
@@ -102,7 +97,7 @@ X = syn_ds[features]
 def split_train_test_dataset(original_X, original_y):
     # Function to load data gaps dataset
     def load_data_gaps(file_name):
-        return pd.read_csv(f'../../data/LE-gaps/{file_name}.csv', parse_dates=['time'], sep=',')
+        return pd.read_csv(f'../data/LE-gaps/{file_name}.csv', parse_dates=['time'], sep=',')
 
     LE_gaps = load_data_gaps(gaps_data_file)
 
@@ -184,7 +179,7 @@ def machine_learning_method(algorithm):
         # save to csv
         if save_to_csv == True:
             cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_cv_results.csv', index=False)
+            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
         #-------------------------------------------------------------------------------
     elif algorithm == 'neural_network':
     
@@ -226,7 +221,7 @@ def machine_learning_method(algorithm):
         # save to csv
         if save_to_csv == True:
             cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_cv_results.csv', index=False)
+            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
         #-------------------------------------------------------------------------------
     elif algorithm == 'lstm':
     
@@ -266,7 +261,7 @@ def machine_learning_method(algorithm):
         # save to csv
         if save_to_csv == True:
             cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_cv_results.csv', index=False)
+            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
 
     ############## TO FINISH WITH XGBOOST AND BART ##############
     ############## NO NEED FOR SCALING #############
