@@ -7,106 +7,102 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error, r2_score
 
 
-#------------------------- Adaptive scaling: ------------------------------#
+#------------------------- Scaling: ------------------------------#
 # Some ML methods require scaling of the input feautures
 # "Adaptive" scaling because it adapts to the distribution of the features
 
-def adaptive_scaling(dataframe, scaling_method="minmax", cyclic_features = None, verbose = False, plot = False):
-    """
-    Scales the features in the dataframe based on the specified or adaptive scaling method.
-    
-    Parameters:
-        dataframe (pd.DataFrame): Input dataset.
-        scaling_method (str): Scaling method to use. Options are:
-            - "individual": Decide scaling per column based on distribution - adaptive scaling ON
-            - "minmax": Use MinMaxScaler for all features.
-            - "standard": Use StandardScaler for all features.
-            - "logminmax": Apply log transformation followed by MinMaxScaler for all features.
-        cyclic_features (list): List of column names that represent cyclical features (e.g., "hour", "doy").
-        verbose (bool): If True, print details during processing.
-        plot (bool): If True, plot distributions before and after scaling.
-    Returns:
-        scaled_df (pd.DataFrame): Scaled dataset with the same columns as the input.
-        scaling_info (dict): Information about the scaling method used for each column.
-    """
-    assert scaling_method in ["individual", "minmax", "standard", "logminmax"], \
-        "Invalid scaling_method. Choose from 'individual', 'minmax', 'standard', 'logminmax'."
-    
+def scaling(dataframe, algorithm, cyclic_features=None, verbose=False, plot=False):
+
+    scaling_method = None
+
+    assert algorithm in ["linear_regression", "neural_network", "bart", "lstm", "random_forest", "xgboost"], \
+        "Invalid algorithm specified."
+
+    # Determine scaling method based on algorithm
+    if algorithm in ["lstm", "neural_network"]:
+        scaling_method = "minmax"
+        if verbose: print(f"Algorithm '{algorithm}' selected: Using MinMax scaling.")
+    elif algorithm == "linear_regression":
+        scaling_method = "standard"
+        if verbose: print(f"Algorithm '{algorithm}' selected: Using Standard scaling.")
+    else:
+        scaling_method = None
+        if verbose: print(f"Algorithm '{algorithm}' selected: No scaling will be applied.")
+
     scaled_df = dataframe.copy()
     scaling_info = {}
     columns = [col for col in dataframe.columns]
 
-    if verbose: print("Scaling in progress..\n")
+    if verbose: print("Scaling in progress...\n")
     for col in columns:
-        
         if verbose: print(f"Processing column: {col}")
         
-        # Check for missing values
+        # Handle missing values
         if scaled_df[col].isnull().any():
             if verbose: print(f"Warning: Column '{col}' contains missing values. Imputing with median.")
             scaled_df[col].fillna(scaled_df[col].median(), inplace=True)
-            
-        # Cyclical encoding for specified features:
-          # Add two columns col_sin and col_cos because they capture two different parts of the periodic behaviour
+
+        # Cyclical encoding for specified features
         if cyclic_features and col in cyclic_features:
-            max_value = scaled_df[col].max() + 1  # Assuming cyclic range [0, max_value - 1] #ex: hour 24, doy 365
+            max_value = scaled_df[col].max() + 1  # Assuming cyclic range [0, max_value - 1]
             if verbose: print(f"  Applying cyclical encoding (sine/cosine) for '{col}'.")
             scaled_df[f"{col}_sin"] = np.sin(2 * np.pi * scaled_df[col] / max_value)
             scaled_df[f"{col}_cos"] = np.cos(2 * np.pi * scaled_df[col] / max_value)
             scaling_info[col] = {"method": "cyclical_encoding"}
-            scaled_df = scaled_df.drop(columns = col)
+            scaled_df = scaled_df.drop(columns=col)
             continue
-        else:
 
-            # Decide scaling method
-            if scaling_method == "individual":
-                    
-                skewness = skew(scaled_df[col])
-                _, p_value = normaltest(scaled_df[col])
-                if verbose: print(f"  Skewness: {skewness:.2f}, Normality test p-value: {p_value:.4f}")
-                
-                if p_value > 0.05:  # Normally distributed
-                    message = f"  Applying StandardScaler (data is approximately normal)."
-                    scaler = StandardScaler()
-                elif skewness > 1 or skewness < -1:  # Highly skewed
-                    message = f"  Applying log transformation followed by MinMaxScaler (data is skewed)."
-                    scaled_df[col] = np.log1p(scaled_df[col] - scaled_df[col].min() + 1)
-                    scaler = MinMaxScaler()
-                else:  # Mildly skewed or uniform
-                    message = f"  Applying MinMaxScaler (data is mildly skewed or uniform)."
-                    scaler = MinMaxScaler()
-                    
-            elif scaling_method == "minmax":
-                message = f"  Applying MinMaxScaler (user-specified method)."
-                scaler = MinMaxScaler()
-                
-            elif scaling_method == "standard":
-                message = f"  Applying StandardScaler (user-specified method)."
+        # Skip scaling if no scaling method is selected
+        if scaling_method is None:
+            if verbose: print(f"No scaling applied for column: {col}")
+            scaling_info[col] = {"method": "none"}
+            continue
+
+        # Determine the scaler
+        if scaling_method == "minmax":
+            scaler = MinMaxScaler()
+            message = "Applying MinMaxScaler."
+        elif scaling_method == "standard":
+            scaler = StandardScaler()
+            message = "Applying StandardScaler."
+        elif scaling_method == "logminmax":
+            scaled_df[col] = np.log1p(scaled_df[col] - scaled_df[col].min() + 1)
+            scaler = MinMaxScaler()
+            message = "Applying log transformation followed by MinMaxScaler."
+        elif scaling_method == "individual":
+            skewness = skew(scaled_df[col])
+            _, p_value = normaltest(scaled_df[col])
+            if verbose: print(f"  Skewness: {skewness:.2f}, Normality test p-value: {p_value:.4f}")
+            if p_value > 0.05:  # Normally distributed
                 scaler = StandardScaler()
-                
-            elif scaling_method == "logminmax":
-                message = f"  Applying log transformation followed by MinMaxScaler (user-specified method)."
+                message = "Applying StandardScaler (data is approximately normal)."
+            elif abs(skewness) > 1:  # Highly skewed
                 scaled_df[col] = np.log1p(scaled_df[col] - scaled_df[col].min() + 1)
                 scaler = MinMaxScaler()
-            
+                message = "Applying log transformation followed by MinMaxScaler (data is skewed)."
+            else:  # Mildly skewed or uniform
+                scaler = MinMaxScaler()
+                message = "Applying MinMaxScaler (data is mildly skewed or uniform)."
+        else:
+            raise ValueError(f"Unknown scaling method: {scaling_method}")
+
         if verbose: print(message)
         
         # Apply scaling
         scaled_values = scaler.fit_transform(scaled_df[col].values.reshape(-1, 1))
         scaled_df[col] = scaled_values.flatten()
-        scaling_info[col] = {
-            "method": scaling_method if scaling_method != "individual" else type(scaler).__name__,
-        }
-        
+        scaling_info[col] = {"method": type(scaler).__name__}
+
         if scaling_method == "individual":
             scaling_info[col].update({
                 "skewness": skewness,
                 "normality_p_value": p_value,
             })
-            
+
         if plot: plot_scaling(dataframe, scaled_df, col)
-        
+
     return scaled_df, scaling_info
+
     
     
 def plot_scaling(original_df, scaled_df, col):

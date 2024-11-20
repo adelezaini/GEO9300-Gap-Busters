@@ -10,7 +10,7 @@ import sys
 #sys.path.insert(0, parent_dir)
 
 # Now import the module
-from workflow_Eivind.ML_lib_copy import * # NOTE: May need to change, depending on location.
+from workflow_Eivind.ML_lib4 import * # NOTE: May need to change, depending on location.
 
 # packages:
 from sklearn.ensemble import RandomForestRegressor
@@ -148,7 +148,7 @@ def machine_learning_method(algorithm):
         # LINEAR REGRESSION (No hyperparameters to tune)
         
         # Apply scaling to input features
-        X_scaled, _ = adaptive_scaling(X, cyclic_features = ['hour','doy'])
+        X_scaled, _ = scaling(X, algorithm, cyclic_features = ['hour','doy'])
         
         # Split training and testing datasets
         X_train, y_train, X_test, y_test = split_train_test_dataset(X_scaled, y)
@@ -219,7 +219,7 @@ def machine_learning_method(algorithm):
         # NEURAL NETWORK REGRESSOR
         
         # Apply scaling to input features
-        X_scaled, _ = adaptive_scaling(X, cyclic_features = ['hour','doy'])
+        X_scaled, _ = scaling(X, algorithm, cyclic_features = ['hour','doy'])
         
         # Split training and testing datasets
         X_train, y_train, X_test, y_test = split_train_test_dataset(X_scaled, y)
@@ -270,7 +270,7 @@ def machine_learning_method(algorithm):
         # LSTM REGRESSOR
         
         # Apply scaling to input features
-        X_scaled, _ = adaptive_scaling(X, cyclic_features = ['hour','doy'])
+        X_scaled, _ = scaling(X, algorithm, cyclic_features = ['hour','doy'])
         
         # Split training and testing datasets
         X_train, y_train, X_test, y_test = split_train_test_dataset(X_scaled, y)
@@ -320,7 +320,7 @@ def machine_learning_method(algorithm):
         # XGBOOST REGRESSOR
         
         # Apply scaling to input features
-        X_scaled, _ = adaptive_scaling(X, cyclic_features = ['hour','doy'])
+        X_scaled, _ = scaling(X, cyclic_features = ['hour','doy'])
         
         # Split training and testing datasets
         X_train, y_train, X_test, y_test = split_train_test_dataset(X_scaled, y)
@@ -359,7 +359,7 @@ def machine_learning_method(algorithm):
         # BART REGRESSOR
         
         # Apply scaling to input features
-        X_scaled, _ = adaptive_scaling(X, cyclic_features = ['hour','doy'])
+        X_scaled, _ = scaling(X, cyclic_features = ['hour','doy'])
         
         # Split training and testing datasets
         X_train, y_train, X_test, y_test = split_train_test_dataset(X_scaled, y)
