@@ -20,7 +20,8 @@ Ch = 0.001  # Bulk transfer coefficient for sensible heat
 albedo_snow = 0.7  # Albedo for snow-covered surface (average albedo of snow) (old:0.8)
 albedo_veg = 0.2  # Albedo for shrubs (old: 0.15)
 
-P = 1013.25  # Atmospheric pressure (hPa)
+P_atm = 1013.25  # Atmospheric pressure (hPa)
+P_1000m = 894.1191
 
 ####### Equations and parametrizations ##################
 
@@ -56,7 +57,7 @@ def e_sat(T):
     return 6.1094 * np.exp((17.625 * T) / (T + 243.04))
 
 # Specific humidity
-def specific_humidity(T, RH):
+def specific_humidity(T, RH, P = P_atm):
     esat = e_sat(T)
     return (0.622 * RH * esat) / (P - 0.378 * RH * esat)
 

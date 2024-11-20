@@ -41,6 +41,13 @@ def main():
     prec = read_and_clean_dataset('total_precipitation').rename(columns = {'total_precipitation': 'prec'})
     prec.to_csv(path + 'total_precipitation.csv')
     print("Total precipitation - successfully saved in data/synthetic_dataset.")
+    
+    pressure = read_and_clean_dataset('Psurf').rename(columns = {'PSurf': 'pressure'})
+    pressure['pressure'] = pressure['pressure']/100 # Pa -> hPa
+    pressure.to_csv(path + 'surface_pressure.csv')
+    print("Surface pressure - successfully saved in data/synthetic_dataset.")
+    
+    # mean value of surface pressure : 89411.91
 
 
 if __name__ == "__main__":

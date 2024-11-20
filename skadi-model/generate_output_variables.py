@@ -3,19 +3,22 @@ import numpy as np
 from scipy.optimize import minimize
 from equations import *
 
-def solve_Ts(SWin, SWout, LWin, Tair, RH_air, u, prec, snow_cover):
+from scipy.optimize import minimize
+
+def solve_Ts(SWin, SWout, LWin, Tair, RH_air, u, prec, snow_cover, pressure = 894.1191):
     # Define the equation to minimize (energy balance should approach 0)
     def equation_system(Ts):
         LWout = longwave_out(Ts[0])
         SH = sensible_heat_flux(u, Ts[0], Tair)
         RH_s = surface_relative_humidity(RH_air, Ts[0], Tair, prec, snow_cover, u)
-        q_s = specific_humidity(Ts[0], RH_s)
-        q_air = specific_humidity(Ts[0], RH_air)
+        q_s = specific_humidity(Ts[0], RH_s, pressure)
+        q_air = specific_humidity(Ts[0], RH_air, pressure)
         LE = latent_heat_flux(u, q_s, q_air)
         return energy_balance(SWin, SWout, LWin, LWout, SH, LE)**2  # Squared for minimization
 
     # Bounds for Ts: within ±20°C of Tair
-    Ts_bounds = [(Tair - 10, Tair + 10)]
+    T_constrain = 15
+    Ts_bounds = [(Tair - T_constrain, Tair + T_constrain)]
 
     # Initial guess for Ts
     initial_guess = [Tair]
@@ -29,34 +32,44 @@ def solve_Ts(SWin, SWout, LWin, Tair, RH_air, u, prec, snow_cover):
     else:
         raise ValueError("Solution did not converge")
 
-def calculate_surface_temperatures(df, verbose = True):
+
+
+def calculate_surface_temperatures(df, verbose=True):
     Ts_values = []
+    non_converge_count = 0  # Initialize the counter for non-convergences
+
     print("Estimation of Ts in progress...")
+    
     for idx, row in df.iterrows():
         try:
-            #print(f"Processing row {idx}: Tair={row['Tair']}, SWin={row['SWin']}, SWout={row['SWout']}")
             Ts = solve_Ts(
-                SWin=row['SWin'],
-                SWout=row['SWout'],
-                LWin=row['LWin'],
-                Tair=row['Tair'],
-                u=row['u'],
-                RH_air=row['RH_air'],
-                prec=row['prec'],
-                snow_cover=row['snow_cover']
+                SWin=row['SWin'], 
+                SWout=row['SWout'], 
+                LWin=row['LWin'], 
+                Tair=row['Tair'], 
+                u=row['u'], 
+                RH_air=row['RH_air'], 
+                prec=row['prec'], 
+                snow_cover=row['snow_cover'],
+                pressure=row['pressure']
             )
             Ts_values.append(Ts)
         except ValueError as e:
-            if verbose: print(f"{e} at {idx}: assigning to Ts the previous hour value({round(Ts_values[-1],2)})")
-            Ts_values.append(Ts_values[-1])
+            non_converge_count += 1  # Increment the counter
+            if verbose:
+                print(f"{e} at index {idx}: assigning to Ts the previous hour value ({round(Ts_values[-1], 2)})")
+            Ts_values.append(Ts_values[-1])  # Assign the previous value
+    
+    print(f"\nNumerical method of Ts - solution did not converge {non_converge_count} times. \nTs values filled with the respectively previous value in the time series.")
+    
     return pd.DataFrame({'Ts': Ts_values}, index=df.index)
 
 def main():
     
   # Import input variables
   path = '../data/synthetic_dataset/'
-  file_list = ['SWin','SWout', 'LWin', 'Tair', 'RH_air', 'wind_speed', 'total_precipitation', 'snow_cover_fraction']
-  variable_list = ['SWin','SWout', 'LWin', 'Tair', 'RH_air', 'u', 'prec', 'snow_cover']
+  file_list = ['SWin','SWout', 'LWin', 'Tair', 'RH_air', 'wind_speed', 'total_precipitation', 'snow_cover_fraction', 'surface_pressure']
+  variable_list = ['SWin','SWout', 'LWin', 'Tair', 'RH_air', 'u', 'prec', 'snow_cover', 'pressure']
 
   for i, variable_name in enumerate(file_list):
       if i == 0: input_data = pd.read_csv(path + variable_name + '.csv', index_col="time", parse_dates=True)
@@ -65,8 +78,11 @@ def main():
       
   # Numerical method to evaluate Ts
   Ts_values = calculate_surface_temperatures(input_data, verbose = False)
+
   
   # Evaluate and save all the output variables
+
+  print("\nEvaluating and saving RHs, Qs, Qair, LWout, SH, LE\n")
   output_data = pd.DataFrame(index=input_data.index)
   output_data['Ts'] = Ts_values
   output_data['RH_s'] = surface_relative_humidity(input_data['RH_air'], output_data['Ts'],
@@ -86,7 +102,7 @@ def main():
     #df = df.dropna()
     df.to_csv(folder_path+f"{var}.csv")
 
-  print("Output data successfully saved as individual CSV files in data/synthetic_dataset.")
+  print("Output data successfully saved as individual CSV files in data/synthetic_dataset.\n")
 
 if __name__ == "__main__":
     main()
