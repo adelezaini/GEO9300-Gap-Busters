@@ -33,12 +33,13 @@ print("Imported libraries\n")
 #### to change: import from external argument ###
 # 'linear_regression', 'random_forest', 'neural_network', 'lstm', 'xgboost', 'bart'
 algorithm = 'bart'
-scoring_metrics = 'r2' #or 'mse'
+scoring_metrics = ['r2', 'mse', 'mae'] #'r2' #or 'mse'
+
 
 print(f"Machine Learning method: {algorithm}")
 print(f"Evaluation metrics: {scoring_metrics}")
 
-# save hyperparameters for the run as csv file?
+# save hyperparameters and summarised model results for the run as csv file?
 save_to_csv = True
 
 ################################################################################
@@ -189,7 +190,7 @@ def machine_learning_method(algorithm):
         print(f"Test Metrics: {RF_metrics}")
 
         # save to csv
-        save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
+        save_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
     #    if save_to_csv == True:
      #       cv_results_df = pd.DataFrame(cv_results)
       #      cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
@@ -232,7 +233,7 @@ def machine_learning_method(algorithm):
         print(f"Best Parameters: {NN_best_params}")
         print(f"Test Metrics: {NN_metrics}")
         # save to csv
-        save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
+        save_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
        # if save_to_csv == True:
        #     cv_results_df = pd.DataFrame(cv_results)
        #     cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
@@ -273,7 +274,7 @@ def machine_learning_method(algorithm):
         print(f"Best Parameters: {LSTM_best_params}")
         print(f"Test Metrics: {LSTM_metrics}")
         # save to csv
-        save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
+        save_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
       #  if save_to_csv == True:
       #      cv_results_df = pd.DataFrame(cv_results)
       #      cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
@@ -282,9 +283,12 @@ def machine_learning_method(algorithm):
     elif algorithm == 'bart':
         
         # BAYESIAN ADDITIVE REGRESSION TREES (BART)
-
-       # Split training and testing datasets
-        X_train, y_train, X_test, y_test = split_train_test_dataset(X, y)
+        
+        # Apply scaling to input features
+        X_scaled, _ = adaptive_scaling(X, scaling_method="individual", cyclic_features = ['hour','doy'])
+        
+        # Split training and testing datasets
+        X_train, y_train, X_test, y_test = split_train_test_dataset(X_scaled, y)
  
         BART_model = SklearnModel(n_trees=50, n_burn=250, n_samples=100)
 
@@ -303,7 +307,7 @@ def machine_learning_method(algorithm):
             print(f"Best Parameters: {BART_best_params}")
             print(f"Test Metrics: {BART_metrics}")
             # save to csv
-            save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
+            save_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv)
          #   if save_to_csv == True:
          #       cv_results_df = pd.DataFrame(cv_results)
          #       cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)

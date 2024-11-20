@@ -137,11 +137,6 @@ def plot_scaling(original_df, scaled_df, col):
 # this function uses a cross validation method to find the best combination of hyperparameters
 # based to the training dataset
 
-# Define the cross-validation strategy:
-CV_scoring = 'neg_mean_absolute_error'   # e.g. 'neg_mean_squared_error', 'r2', 'neg_root_mean_squared_error. More available methods for regression evaluation (scoring): https://scikit-learn.org/1.5/modules/model_evaluation.html#scoring-parameter)
-cv = 3  # Number of cross-validation folds
-
-
 def model_tuning_CV(X_train, y_train, model, hyperparameters, cv = cv , scoring = CV_scoring, verbose=0):
     """
     Perform hyperparameter tuning using GridSearchCV.
@@ -193,7 +188,9 @@ def model_tuning_CV(X_train, y_train, model, hyperparameters, cv = cv , scoring 
 # evaluate the performance of the ML method based on the "scoring" (r2 or mean sqaured error) between the predicted dataset and the test dataset
 
 
-def evaluate_model(model, X_test, y_test, scoring ='r2'):
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+
+def evaluate_model(model, X_test, y_test, scoring=['r2']):
     """
     Evaluate a trained model on the test data and compute metrics.
 
@@ -201,38 +198,44 @@ def evaluate_model(model, X_test, y_test, scoring ='r2'):
         model (object): Trained machine learning model.
         X_test (array-like): Test feature matrix.
         y_test (array-like): Test target vector.
-        scoring (str, optional): Scoring metric for evaluation (default is 'r2').
+        scoring (list, optional): List of scoring metrics for evaluation (default is ['r2']).
 
     Returns:
         dict: A dictionary containing predictions and evaluation metrics.
     """
     
     # Validate the scoring parameter
-    if scoring not in {'r2', 'mse'}:
-        raise ValueError("Invalid scoring metric. Allowed values are 'r2' and 'mse'.")
+    valid_metrics = {'r2', 'mse', 'mae'}
+    if not all(metric in valid_metrics for metric in scoring):
+        raise ValueError(f"Invalid scoring metric. Allowed values are {valid_metrics}.")
         
     try:
         # Make predictions on the test set
         y_pred = model.predict(X_test)
         
         # Compute evaluation metrics based on the scoring method
+        metrics = {}
         print(f"Test Metrics:")
-        if scoring == 'r2':
-            metrics = r2_score(y_test, y_pred)
-            print(f"  R² Score: {metrics:.2f}")
-        if scoring == 'mse':
-            metrics = mean_squared_error(y_test, y_pred)
-            print(f"  Mean Squared Error: {metrics:.2f}")
+        for metric in scoring:
+            if metric == 'r2':
+                metrics['r2'] = r2_score(y_test, y_pred)
+                print(f"  R² Score: {metrics['r2']:.2f}")
+            elif metric == 'mse':
+                metrics['mse'] = mean_squared_error(y_test, y_pred)
+                print(f"  Mean Squared Error: {metrics['mse']:.2f}")
+            elif metric == 'mae':
+                metrics['mae'] = mean_absolute_error(y_test, y_pred)
+                print(f"  Mean Absolute Error: {metrics['mae']:.2f}")
         
         return metrics
     except Exception as e:
         print(f"Error during model evaluation: {e}")
         return None
 
-#------------------------- Save cross-validation results to CSV: ------------------------------#
+#------------------------- Save cross-validation and evaluation metrics results to CSV: ------------------------------#
 # save to csv:
 
-def save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, save_to_csv=True):
+def save_results_to_csv(cv_results, metrics, algorithm, gaps_data_file, CV_scoring, save_to_csv=True):
     """
     Save cross-validation results to a CSV file.
 
@@ -244,5 +247,24 @@ def save_cv_results_to_csv(cv_results, algorithm, gaps_data_file, CV_scoring, sa
     save_to_csv (bool): Flag to save the results to CSV. Default is True.
     """
     if save_to_csv:
+        # CV results:
         cv_results_df = pd.DataFrame(cv_results)
         cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_{CV_scoring}_cv_results.csv', index=False)
+
+        # Save evaluation metrics
+        metrics_summary = {
+            'Algorithm': [algorithm],
+            'Gaps Data File': [gaps_data_file],
+            'CV Scoring': [CV_scoring]
+        }
+        metrics_summary.update(metrics)
+        metrics_df = pd.DataFrame(metrics_summary)
+        metrics_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_{CV_scoring}_metrics_summary.csv', index=False)
+
+        # save y_predic and y_test in the same dataframe to compare them
+        y_pred = pd.DataFrame(y_pred)
+        y_test = pd.DataFrame(y_test)
+        y_pred.to_csv(f'../results/{algorithm}_{gaps_data_file}_{CV_scoring}_y_pred.csv', index=False)
+        y_test.to_csv(f'../results/{algorithm}_{gaps_data_file}_{CV_scoring}_y_test.csv', index=False)
+        
+
