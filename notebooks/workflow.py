@@ -144,26 +144,6 @@ def adaptive_scaling(dataframe, target_column=None, scaling_method="minmax"):
                 "normality_p_value": p_value,
             })
         
-        plt.figure(figsize=(12, 6))
-        
-        # Plot non-scaled distribution
-        plt.subplot(1, 2, 1)
-        plt.hist(dataframe[col], bins=30, alpha=0.7, label='Non-Scaled')
-        plt.title(f'Non-Scaled Distribution of {col}')
-        plt.xlabel(col)
-        plt.ylabel('Frequency')
-        plt.legend()
-        
-        # Plot scaled distribution
-        plt.subplot(1, 2, 2)
-        plt.hist(scaled_df[col], bins=30, alpha=0.7, label='Scaled')
-        plt.title(f'Scaled Distribution of {col}')
-        plt.xlabel(col)
-        plt.ylabel('Frequency')
-        plt.legend()
-        
-        plt.tight_layout()
-        plt.show()
     return scaled_df, scaling_info
 
 #-------------------------------------------------------------------------------
