@@ -10,6 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import gamma
 
+# number of file to save to:
+file_number = 5
+
 
 #--------------------------------------------------------------------------------
 # Create power cut gaps on the synthetic data:
@@ -273,17 +276,15 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-#%%
 # save to files:
 
 # structured gaps:
 ds_structured = syn_ds[['time', 'LE_gaps_structured']]
 ds_structured = ds_structured.rename(columns={"LE_gaps_structured": "LE_gaps"})
-
-ds_structured.to_csv('../data/LE-gaps/structured_gaps_5.csv', index=False)
+ds_structured.to_csv(f'../data/LE-gaps/structured_gaps_{file_number}.csv', index=False)
 
 # random gaps:
 ds_random = syn_ds[['time', 'LE_gaps_random']]
 ds_random = ds_random.rename(columns={"LE_gaps_random": "LE_gaps"})
-ds_random.to_csv('../data/LE-gaps/random_gaps_5.csv', index=False)
+ds_random.to_csv(f'../data/LE-gaps/random_gaps_{file_number}.csv', index=False)
 
