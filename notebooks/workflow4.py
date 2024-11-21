@@ -10,7 +10,7 @@ import sys
 #sys.path.insert(0, parent_dir)
 
 # Now import the module
-from workflow_Eivind.ML_lib4 import * # NOTE: May need to change, depending on location.
+from workflow_Eivind.ML_lib4 import *
 
 # packages:
 from sklearn.ensemble import RandomForestRegressor
@@ -31,7 +31,7 @@ print("Imported libraries\n")
 # - machine learning models and applying hyperparameter search grids
 
 #### to change: import from external argument ###
-algorithm = 'xgboost' #look below for the options
+algorithm = 'random_forest' #look below for the options
 scoring_metrics = 'r2' #or 'mse'
 
 print(f"Machine Learning method: {algorithm}")
@@ -58,7 +58,7 @@ features = [
     ]
 
 # Choose the gaps dataset - either structured or random gaps
-gaps_data_file = 'structured_gaps_1' # 'random_gaps_1' -- values from 1 to 5 for diff versions
+gaps_data_file = 'structured_gaps_2' # 'random_gaps_1' -- values from 1 to 5 for diff versions
 
 # Define the cross-validation strategy:
 CV_scoring = 'neg_mean_absolute_error'   # e.g. 'neg_mean_squared_error', 'r2', 'neg_root_mean_squared_error. More available methods for regression evaluation (scoring): https://scikit-learn.org/1.5/modules/model_evaluation.html#scoring-parameter)
@@ -162,18 +162,10 @@ def machine_learning_method(algorithm):
 
         # Evaluate the ML method
         LR_metrics = evaluate_model(lr_model, X_test, y_test)
+        metric = LR_metrics # for the general saving code at the end of the script
 
         print("\n=== LINEAR REGRESSION RESULTS ===")
         print(f"Test Metrics: {LR_metrics}")
-
-        # Save predictions to CSV
-        if save_to_csv:
-            results_df = pd.DataFrame({
-            'index': X_test.index,
-            'Actual': y_test,
-            'Predicted': y_pred
-            })
-            results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_predictions.csv', index=False)
 
         #-------------------------------------------------------------------------------
     elif algorithm == 'random_forest':
@@ -182,7 +174,6 @@ def machine_learning_method(algorithm):
         
         # Split training and testing datasets
         X_train, y_train, X_test, y_test = split_train_test_dataset(X, y)
-        
         
         param_grid_rf = {
             'n_estimators': [100, 200, 300, 500],
@@ -195,6 +186,7 @@ def machine_learning_method(algorithm):
         rf_model = RandomForestRegressor()
         RF_best_model, RF_best_params, cv_results = model_tuning_CV(X_train, y_train, rf_model, param_grid_rf, cv, CV_scoring)
         RF_metrics = evaluate_model(RF_best_model, X_test, y_test, scoring_metrics)
+        metric = RF_metrics # for the general saving code at the end of the script
 
         # Generate predictions
         y_pred = RF_best_model.predict(X_test)
@@ -203,16 +195,6 @@ def machine_learning_method(algorithm):
         print(f"Best Parameters: {RF_best_params}")
         print(f"Test Metrics: {RF_metrics}")
 
-        # save to csv
-        if save_to_csv == True:
-            cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
-            results_df = pd.DataFrame({
-            'index': X_test.index,
-            'Actual': y_test,
-            'Predicted': y_pred
-            })
-            results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_predictions.csv', index=False)
         #-------------------------------------------------------------------------------
     elif algorithm == 'neural_network':
     
@@ -247,6 +229,7 @@ def machine_learning_method(algorithm):
 
         NN_best_model, NN_best_params, cv_results = model_tuning_CV(X_train, y_train, keras_model, param_grid_nn, cv, CV_scoring)
         NN_metrics = evaluate_model(NN_best_model, X_test, y_test, scoring_metrics)
+        metric = NN_metrics # for the general saving code at the end of the script
 
         # Generate predictions
         y_pred = NN_best_model.predict(X_test)
@@ -254,16 +237,7 @@ def machine_learning_method(algorithm):
         print("\n=== NEURAL NETWORK RESULTS ===")
         print(f"Best Parameters: {NN_best_params}")
         print(f"Test Metrics: {NN_metrics}")
-        # save to csv
-        if save_to_csv == True:
-            cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
-            results_df = pd.DataFrame({
-            'index': X_test.index,
-            'Actual': y_test,
-            'Predicted': y_pred
-            })
-            results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_predictions.csv', index=False)
+
         #-------------------------------------------------------------------------------
     elif algorithm == 'lstm':
     
@@ -296,6 +270,7 @@ def machine_learning_method(algorithm):
 
         LSTM_best_model, LSTM_best_params, cv_results = model_tuning_CV(X_train, y_train, lstm_model, param_grid_lstm, cv, CV_scoring)
         LSTM_metrics = evaluate_model(LSTM_best_model, X_test, y_test, scoring_metrics)
+        metric = LSTM_metrics # for the general saving code at the end of the script
 
         # Generate predictions
         y_pred = LSTM_best_model.predict(X_test)
@@ -303,16 +278,6 @@ def machine_learning_method(algorithm):
         print("\n=== LSTM RESULTS ===")
         print(f"Best Parameters: {LSTM_best_params}")
         print(f"Test Metrics: {LSTM_metrics}")
-        # save to csv
-        if save_to_csv == True:
-            cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
-            results_df = pd.DataFrame({
-            'index': X_test.index,
-            'Actual': y_test,
-            'Predicted': y_pred
-            })
-            results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_predictions.csv', index=False)
 
     #-------------------------------------------------------------------------------
     elif algorithm == 'xgboost':
@@ -320,7 +285,7 @@ def machine_learning_method(algorithm):
         # XGBOOST REGRESSOR
         
         # Apply scaling to input features
-        X_scaled, _ = scaling(X, cyclic_features = ['hour','doy'])
+        X_scaled, _ = scaling(X, algorithm, cyclic_features = ['hour','doy'])
         
         # Split training and testing datasets
         X_train, y_train, X_test, y_test = split_train_test_dataset(X_scaled, y)
@@ -336,6 +301,7 @@ def machine_learning_method(algorithm):
         xgb_model = XGBRegressor(objective='reg:squarederror', random_state=42)
         XGB_best_model, XGB_best_params, cv_results = model_tuning_CV(X_train, y_train, xgb_model, param_grid_xgb, cv, CV_scoring)
         XGB_metrics = evaluate_model(XGB_best_model, X_test, y_test, scoring_metrics)
+        metric = XGB_metrics # for the general saving code at the end of the script
 
         # Generate predictions
         y_pred = XGB_best_model.predict(X_test)
@@ -343,23 +309,14 @@ def machine_learning_method(algorithm):
         print("\n=== XGBOOST RESULTS ===")
         print(f"Best Parameters: {XGB_best_params}")
         print(f"Test Metrics: {XGB_metrics}")
-        # save to csv
-        if save_to_csv == True:
-            cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
-            results_df = pd.DataFrame({
-            'index': X_test.index,
-            'Actual': y_test,
-            'Predicted': y_pred
-            })
-            results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_predictions.csv', index=False)
+
     #-------------------------------------------------------------------------------
     elif algorithm == 'bart':
     
         # BART REGRESSOR
         
         # Apply scaling to input features
-        X_scaled, _ = scaling(X, cyclic_features = ['hour','doy'])
+        X_scaled, _ = scaling(X, algorithm, cyclic_features = ['hour','doy'])
         
         # Split training and testing datasets
         X_train, y_train, X_test, y_test = split_train_test_dataset(X_scaled, y)
@@ -375,6 +332,7 @@ def machine_learning_method(algorithm):
 
         BART_best_model, BART_best_params, cv_results = model_tuning_CV(X_train, y_train, bart_model, param_grid_bart, cv, CV_scoring)
         BART_metrics = evaluate_model(BART_best_model, X_test, y_test, scoring_metrics)
+        metric = BART_metrics # for the general saving code at the end of the script
 
         # Generate predictions
         y_pred = bart_model.predict(X_test)
@@ -382,16 +340,35 @@ def machine_learning_method(algorithm):
         print("\n=== BART RESULTS ===")
         print(f"Best Parameters: {BART_best_params}")
         print(f"Test Metrics: {BART_metrics}")
-        # save to csv
-        if save_to_csv == True:
-            cv_results_df = pd.DataFrame(cv_results)
-            cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
-            results_df = pd.DataFrame({
+#-------------------------------------------------------------------------------
+    # SAVING RESULTS
+    
+    # Save results to CSV
+
+    if save_to_csv and algorithm != 'linear_regression':
+    # Save CV results
+        cv_results_df = pd.DataFrame(cv_results)
+        cv_results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_cv_results.csv', index=False)
+
+    if save_to_csv:
+    # Save predictions
+        results_df = pd.DataFrame({
             'index': X_test.index,
             'Actual': y_test,
             'Predicted': y_pred
-            })
-            results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_predictions.csv', index=False)
+        })
+        results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_predictions.csv', index=False)
+
+    # Save R² or MSE value if available
+        if scoring_metrics == 'r2':
+            metric_df = pd.DataFrame({'R2_Score': [metric]})
+            metric_file_name = f'../results/{algorithm}_{gaps_data_file}_r2_results.csv'
+        elif scoring_metrics == 'mse':
+            metric_df = pd.DataFrame({'MSE': [metric]})
+            metric_file_name = f'../results/{algorithm}_{gaps_data_file}_mse_results.csv'
+
+        if scoring_metrics is not None:
+            metric_df.to_csv(metric_file_name, index=False)
 
 # Perform the function
 machine_learning_method(algorithm)
