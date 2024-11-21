@@ -31,8 +31,8 @@ print("Imported libraries\n")
 # - machine learning models and applying hyperparameter search grids
 
 #### to change: import from external argument ###
-algorithm = 'random_forest' #look below for the options
-scoring_metrics = 'r2' #or 'mse'
+algorithm = 'linear_regression' #look below for the options
+scoring_metrics = ['r2','mse','mae']
 
 print(f"Machine Learning method: {algorithm}")
 print(f"Evaluation metrics: {scoring_metrics}")
@@ -161,7 +161,7 @@ def machine_learning_method(algorithm):
         y_pred = lr_model.predict(X_test)
 
         # Evaluate the ML method
-        LR_metrics = evaluate_model(lr_model, X_test, y_test)
+        LR_metrics = evaluate_model(lr_model, X_test, y_test, scoring_metrics)
         metric = LR_metrics # for the general saving code at the end of the script
 
         print("\n=== LINEAR REGRESSION RESULTS ===")
@@ -360,15 +360,16 @@ def machine_learning_method(algorithm):
         results_df.to_csv(f'../results/{algorithm}_{gaps_data_file}_predictions.csv', index=False)
 
     # Save R² or MSE value if available
-        if scoring_metrics == 'r2':
-            metric_df = pd.DataFrame({'R2_Score': [metric]})
-            metric_file_name = f'../results/{algorithm}_{gaps_data_file}_r2_results.csv'
-        elif scoring_metrics == 'mse':
-            metric_df = pd.DataFrame({'MSE': [metric]})
-            metric_file_name = f'../results/{algorithm}_{gaps_data_file}_mse_results.csv'
+    if scoring_metrics != None:
 
-        if scoring_metrics is not None:
-            metric_df.to_csv(metric_file_name, index=False)
+        # Prepare the DataFrame with all metrics
+        metric_df = pd.DataFrame([metric])  # Convert the dictionary into a DataFrame
+
+        # Define the output file path
+        metric_file_name = f'../results/{algorithm}_{gaps_data_file}_metrics_results.csv'
+
+        # Save metrics to the CSV file
+        metric_df.to_csv(metric_file_name, index=False)
 
 # Perform the function
 machine_learning_method(algorithm)

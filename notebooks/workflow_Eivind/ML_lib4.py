@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import skew, normaltest
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
 
 #------------------------- Scaling: ------------------------------#
@@ -186,39 +186,47 @@ def model_tuning_CV(X_train, y_train, model, hyperparameters, cv = cv , scoring 
 #------------------------- Machine Learning model evaluation: ------------------------------#
 # evaluate the performance of the ML method based on the "scoring" (r2 or mean sqaured error) between the predicted dataset and the test dataset
 
-
-def evaluate_model(model, X_test, y_test, scoring ='r2'):
+def evaluate_model(model, X_test, y_test, scoring):
     """
-    Evaluate a trained model on the test data and compute metrics.
+    Evaluate a trained model on the test data and compute specified metrics.
 
     Parameters:
         model (object): Trained machine learning model.
         X_test (array-like): Test feature matrix.
         y_test (array-like): Test target vector.
-        scoring (str, optional): Scoring metric for evaluation (default is 'r2').
+        scoring (list, optional): List of scoring metrics for evaluation (default is ['r2']).
 
     Returns:
         dict: A dictionary containing predictions and evaluation metrics.
     """
-    
     # Validate the scoring parameter
-    if scoring not in {'r2', 'mse'}:
-        raise ValueError("Invalid scoring metric. Allowed values are 'r2' and 'mse'.")
-        
+    valid_metrics = {'r2', 'mse', 'mae'}
+    invalid_metrics = [metric for metric in scoring if metric not in valid_metrics]
+    if invalid_metrics:
+        raise ValueError(f"Invalid scoring metric(s): {invalid_metrics}. Allowed values are {valid_metrics}.")
+    
     try:
         # Make predictions on the test set
         y_pred = model.predict(X_test)
         
-        # Compute evaluation metrics based on the scoring method
+        # Compute evaluation metrics
+        metrics = {}
         print(f"Test Metrics:")
-        if scoring == 'r2':
-            metrics = r2_score(y_test, y_pred)
-            print(f"  R² Score: {metrics:.2f}")
-        if scoring == 'mse':
-            metrics = mean_squared_error(y_test, y_pred)
-            print(f"  Mean Squared Error: {metrics:.2f}")
+        if 'r2' in scoring:
+            r2 = r2_score(y_test, y_pred)
+            metrics['r2'] = r2
+            print(f"  R² Score: {r2:.2f}")
+        if 'mse' in scoring:
+            mse = mean_squared_error(y_test, y_pred)
+            metrics['mse'] = mse
+            print(f"  Mean Squared Error: {mse:.2f}")
+        if 'mae' in scoring:
+            mae = mean_absolute_error(y_test, y_pred)
+            metrics['mae'] = mae
+            print(f"  Mean Absolute Error: {mae:.2f}")
         
         return metrics
+    
     except Exception as e:
         print(f"Error during model evaluation: {e}")
         return None
