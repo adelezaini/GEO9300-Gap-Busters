@@ -3,8 +3,6 @@ import numpy as np
 from scipy.optimize import minimize
 from equations import *
 
-from scipy.optimize import minimize
-
 def solve_Ts(SWin, SWout, LWin, Tair, RH_air, u, prec, snow_cover, pressure = 894.1191):
     # Define the equation to minimize (energy balance should approach 0)
     def equation_system(Ts):
@@ -12,11 +10,11 @@ def solve_Ts(SWin, SWout, LWin, Tair, RH_air, u, prec, snow_cover, pressure = 89
         SH = sensible_heat_flux(u, Ts[0], Tair)
         RH_s = surface_relative_humidity(RH_air, Ts[0], Tair, prec, snow_cover, u)
         q_s = specific_humidity(Ts[0], RH_s, pressure)
-        q_air = specific_humidity(Ts[0], RH_air, pressure)
+        q_air = specific_humidity(Tair, RH_air, pressure)
         LE = latent_heat_flux(u, q_s, q_air)
         return energy_balance(SWin, SWout, LWin, LWout, SH, LE)**2  # Squared for minimization
 
-    # Bounds for Ts: within ±20°C of Tair
+    # Bounds for Ts: within ±15°C of Tair
     T_constrain = 15
     Ts_bounds = [(Tair - T_constrain, Tair + T_constrain)]
 
