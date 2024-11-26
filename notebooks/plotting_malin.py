@@ -226,27 +226,28 @@ palette_2 = {
 }
 
 # Increase the text size
-plt.rcParams.update({'font.size': 15})
+plt.rcParams.update({'font.size': 18})
 
 # Combine two plots into one figure with two subplots
-fig, axes = plt.subplots(2, 1, figsize=(14, 14), sharex=True, sharey=False)
+fig, axes = plt.subplots(2, 1, figsize=(14, 14), sharex=False, sharey=False)
 
 # First Plot: Prediction Errors by Algorithm and Gap Type
-sns.boxplot(data=plot_df_1, x='Algorithm', y='Difference', hue='GapType', palette=palette_1, ax=axes[0])
+sns.boxplot(data=plot_df_1, x='Algorithm', y='Difference', hue='GapType', palette=palette_1, ax=axes[0],showfliers=False)
 axes[0].axhline(y=0, color='black', linestyle='--')
-axes[0].set_ylabel('Difference in gap-filling LE [W/m²]', fontsize=16)
+axes[0].set_ylabel('Difference in gap-filling LE [W/m²]', fontsize=18)
 axes[0].set_xlabel('')  # Remove x-axis label
-axes[0].legend(title='Data gap scenario', loc='upper left')
-axes[0].tick_params(axis='x', rotation=45)
-axes[0].text(-0.1, 1.05, 'a)', transform=axes[0].transAxes, size=20, weight='bold')
+axes[0].legend(title='Data gap scenario', loc='upper left', fontsize=16, title_fontsize=16)
+axes[0].tick_params(axis='x', labelsize=18)
+axes[0].text(-0.1, 1.05, 'a)', transform=axes[0].transAxes, size=25, weight='bold')
 
 # Second Plot: Prediction Errors by Algorithm, Gap Type, and Condition
-sns.boxplot(data=plot_df_2, x='Algorithm', y='Difference', hue='CombinedCond', palette=palette_2, dodge=True, ax=axes[1])
+sns.boxplot(data=plot_df_2, x='Algorithm', y='Difference', hue='CombinedCond', palette=palette_2, dodge=True, ax=axes[1],showfliers=False)
 axes[1].axhline(y=0, color='black', linestyle='--')
-axes[1].set_ylabel('Difference in gap-filling LE [W/m²]', fontsize=16)
-axes[1].legend(title='Condition and Gap Type', loc='upper left')
-axes[1].tick_params(axis='x')
-axes[1].text(-0.1, 1.05, 'b)', transform=axes[1].transAxes, size=20, weight='bold')
+axes[1].set_ylabel('Difference in gap-filling LE [W/m²]', fontsize=18)
+axes[1].legend(title='Condition and Gap Type', loc='lower center', fontsize=16, title_fontsize=16)
+axes[1].tick_params(axis='x', labelsize=18)
+axes[1].tick_params(axis='y', labelsize=18)
+axes[1].text(-0.1, 1.05, 'b)', transform=axes[1].transAxes, size=25, weight='bold')
 
 # Adjust layout
 plt.tight_layout()
