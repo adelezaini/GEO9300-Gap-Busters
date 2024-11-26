@@ -3,3 +3,8 @@
 
 skadi-model/__pycache__/*
 notebooks/__pycache__/*
+
+data/eddypro_0_full_output_2024-06-12T114958_adv.csv
+data/Tuddal_data.csv
+data/dataset_overview.png
+data/variables_metadata.xlsx
