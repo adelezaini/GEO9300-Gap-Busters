@@ -19,7 +19,6 @@ file_number = 5
 
 # first load synthetic dataset:
 folder_path = '../data/synthetic_dataset'
-folder_path = '/home/mlahlbac/projects/GEO9300/GEO9300-Gap-Busters/data/synthetic_dataset'
 csv_files = glob.glob(os.path.join(folder_path, '*.csv'))
 
 dfs = []
@@ -81,7 +80,7 @@ power_cut_length = power_cut_length.astype(int)
 # Create synthetic filtered data gaps:
 
 # first - get the gap characteristics from original data (Tuddal)
-df = pd.read_csv("/home/mlahlbac/COURSES/Geophysical_data_science/Tuddal_data.csv", na_values=np.nan)
+df = pd.read_csv("../data/EC_data.csv", na_values=np.nan)
 
 #----- Gap length calculation -----
 df['filtered_LE_group'] = np.where((df['LE'].notnull()) & (df['LE_qc0'].isnull()), 1, np.nan)
@@ -115,15 +114,11 @@ plt.legend()
 plt.show()
 
 # Parameters for gaps in data:
-
-# no of months classified as winter vs summer:
 winter_months = 5
 summer_months = 7
-
-# number of gaps per season:
-summer_LE = (len(filtered_LE_length) * summer_months * 0.3)
+summer_LE = (len(filtered_LE_length) * summer_months * 0.30)
 summer_LE = int(summer_LE)
-winter_LE = (len(filtered_LE_length) * winter_months * 0.8)
+winter_LE = (len(filtered_LE_length) * winter_months * 0.70)
 winter_LE = int(winter_LE)
 
 # Generate synthetic data gaps using the fitted gamma distribution
@@ -132,8 +127,6 @@ synthetic_gap_lengths_summer = np.round(synthetic_gap_lengths_summer).astype(int
 
 synthetic_gap_lengths_winter = gamma.rvs(fit_alpha, fit_loc, fit_beta, size=winter_LE)
 synthetic_gap_lengths_winter = np.round(synthetic_gap_lengths_winter).astype(int) # to integer
-
-# Now that we have the length of hte gaps, determine where to insert them in the syn_ds dataframe:
 
 # Weighting so that there is a higher probability of gaps in the night time:
 night_weight = 0.75
