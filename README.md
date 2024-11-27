@@ -1,2 +1,2 @@
 # GEO9300-Gap-Busters
-Some machine learning methods (e.g., BART, LSTM, ROC/AUC curves, etc.) are explored as data-filling methods. The dataset is from an eddy covariance flux tower at Tuddal, which experienced power cuts from insufficient solar panel supply. The post-processed dataset is thus analyzed with frequency/extreme events analysis and PCA.
+Six machine learning methods (BART, LSTM, Random Forest, XGBoost, Multiple Linear Regression, ANN) are explored as data-filling methods. The methods are tested on a synthetic dataset created by a developed model (Skadi). 
