@@ -6,41 +6,6 @@ import os
 import sys
 
 ################################################################################
-### Loading of the synthetic dataset
-################################################################################
-
-##### Load the synthetic dataset:
-# a. Load single CSV files in separate dfs
-# b. Merge the dfs into one single "synthetic_dataset"
-
-folder_path = '../data/synthetic_dataset' # NOTE: May need to adjust if the script is used from another folder
-
-csv_files = glob.glob(os.path.join(folder_path, '*.csv')) # use glob library to find all CSV files
-
-dfs = [] #to store individual DataFrames.
-
-for file in csv_files:
-    data = pd.read_csv(file, parse_dates=['time'], sep=',')
-    # 'parse_dates' argument ensures the 'time' column is interpreted as datetime objects.
-    
-    dfs.append(data)
-
-syn_ds = dfs[0] # Start with the first DataFrame as the base for merging.
-
-for data in dfs[1:]:
-    # Merge each subsequent DataFrame with the base DataFrame (`syn_ds`).
-    # The merge is done using an ordered merge on the 'time' column.
-    # This ensures that the merged dataset remains sorted by 'time'.
-    syn_ds = pd.merge_ordered(syn_ds, data, on='time')
-
-#-------------------------------------------------------------------------------
-# Features and target variables:
-
-syn_ds["time"] = pd.to_datetime(syn_ds["time"])
-syn_ds["doy"] = syn_ds["time"].dt.dayofyear
-syn_ds["hour"] = syn_ds["time"].dt.hour
-
-################################################################################
 ### FUNCTION: Visualization of fit of predicted models to actual data
 ################################################################################
 
@@ -218,40 +183,31 @@ def plot_metrics_horizontal(models, results_dir="../results"):
     plt.show()
 
 ################################################################################
-### CHART GENERATION
+### FUNCTIONS FOR CHART VISUALIUZING GAPS
 ################################################################################
 
-# 1 - Visualization of time series data
-models = ['linear_regression_structured_gaps_1','xgboost_random_gaps_1','xgboost_random_gaps_2','xgboost_random_gaps_3','xgboost_structured_gaps_1','xgboost_structured_gaps_2', 'xgboost_structured_gaps_3']  # List your models here  # List your models here
-plot_actual_vs_predicted(syn_ds, models)
+from matplotlib.patches import Patch
 
-# 2a - Comparison of R2 values for different models
-#models = ['linear_regression_structured_gaps_1','xgboost_random_gaps_1','xgboost_random_gaps_2','xgboost_random_gaps_3','xgboost_structured_gaps_1','xgboost_structured_gaps_2', 'xgboost_structured_gaps_3']  # List your models here
-plot_r2_comparison(models)
+# Identify missing data
+def find_gaps(original, gapped):
+    """Identify continuous gaps based on missing LE values."""
+    gaps = []
+    in_gap = False
+    start = None
 
-# 2b - Comparison of R2, MSE and MAE values for different models
-#models = ['linear_regression_random_gaps_1', 'linear_regression_structured_gaps_1','xgboost_random_gaps_1','xgboost_structured_gaps_1', 'bart_random_gaps_1', 'bart_structured_gaps_1','random_forest_random_gaps_1','random_forest_structured_gaps_1', 'neural_network_random_gaps_1', 'neural_network_structured_gaps_1','lstm_random_gaps_1','lstm_structured_gaps_1']  # List your models here
-plot_metrics_horizontal(models)
+    for time, le_orig, le_gap in zip(original['time'], original['LE'], gapped['LE_gaps']):
+        if pd.isna(le_gap) and not in_gap:
+            start = time
+            in_gap = True
+        elif not pd.isna(le_gap) and in_gap:
+            gaps.append((start, time))
+            in_gap = False
 
-# 3 - Comparison of R2 values for different models
-#models = ['xgboost_random_gaps_3']  # List your models here
-plot_residuals(models)
+    # Capture the last gap if it ends at the end of the dataset
+    if in_gap:
+        gaps.append((start, original['time'].iloc[-1]))
 
-
-################################################################################
-### CHART GENERATION 4: Gap visualization
-################################################################################
-
-# Load the Synthetic dataset
-syn_ds['time'] = pd.to_datetime(syn_ds['time'])  # Ensure time column is datetime
-
-# Load datasets with gaps
-random_gaps = pd.read_csv("../data/LE-gaps/random_gaps_1.csv")
-structured_gaps = pd.read_csv("../data/LE-gaps/structured_gaps_1.csv")
-
-# Ensure time columns are consistent
-random_gaps['time'] = syn_ds['time']  # Align time with Synthetic dataset
-structured_gaps['time'] = syn_ds['time']
+    return gaps
 
 def add_thin_gap_bars(ax, gap_intervals, color, alpha=1, linewidth=0.4, step='1H'):
     """
@@ -264,51 +220,63 @@ def add_thin_gap_bars(ax, gap_intervals, color, alpha=1, linewidth=0.4, step='1H
 
 from matplotlib.patches import Patch
 
-# Identify missing data
-# Plot the data
-fig, axes = plt.subplots(3, 1, figsize=(12, 12), sharex=True)
+def plot_data_with_gaps(syn_ds, random_gaps, structured_gaps):
+    """
+    Plots synthetic data with structured and random gaps.
+    
+    Parameters:
+    - syn_ds: DataFrame containing the synthetic data with time and LE values.
+    - random_gaps: DataFrame containing random gaps data (with 'LE_gaps' column).
+    - structured_gaps: DataFrame containing structured gaps data (with 'LE_gaps' column).
+    """
+    # Identify missing data
+    random_gaps_continuous = find_gaps(syn_ds, random_gaps)
+    structured_gaps_continuous = find_gaps(syn_ds, structured_gaps)
 
-# Subplot a: Synthetic data
-axes[0].plot(syn_ds['time'], syn_ds['LE'], color='blue', label='Synthetic data', zorder=1)
-axes[0].set_title('a) Synthetic data (LE)', fontsize=14)
-axes[0].set_ylabel(f'LE [W/m²]', fontsize=14)
-axes[0].grid(True, linestyle='--', linewidth=0.5)
-axes[0].tick_params(axis='both', labelsize=14)
-axes[0].legend(fontsize=14)
+    # Plot the data
+    fig, axes = plt.subplots(3, 1, figsize=(12, 12), sharex=True)
 
-# Subplot b: Synthetic data with structured gaps
-axes[1].plot(syn_ds['time'], syn_ds['LE'], color='blue', label='Synthetic data', zorder=1)
-add_thin_gap_bars(axes[1], structured_gaps_continuous, color='green', alpha=1, step='2H')
-axes[1].set_title('b) Synthetic data with structured gaps', fontsize=14)
-axes[1].set_ylabel(f'LE [W/m²]', fontsize=14)
+    # Subplot a: Synthetic data
+    axes[0].plot(syn_ds['time'], syn_ds['LE'], color='blue', label='Synthetic data', zorder=1)
+    axes[0].set_title('a) Synthetic data (LE)', fontsize=14)
+    axes[0].set_ylabel(f'LE [W/m²]', fontsize=14)
+    axes[0].grid(True, linestyle='--', linewidth=0.5)
+    axes[0].tick_params(axis='both', labelsize=14)
+    axes[0].legend(fontsize=14)
 
-# Subplot c: Synthetic data with random gaps
-axes[2].plot(syn_ds['time'], syn_ds['LE'], color='blue', label='Synthetic data', zorder=1)
-add_thin_gap_bars(axes[2], random_gaps_continuous, color='orange', alpha=1, step='2H')
-axes[2].set_title('c) Synthetic data with random gaps', fontsize=14)
-axes[2].set_ylabel(f'LE [W/m²]', fontsize=14)
-axes[2].set_xlabel('Time', fontsize=14)
+    # Subplot b: Synthetic data with structured gaps
+    axes[1].plot(syn_ds['time'], syn_ds['LE'], color='blue', label='Synthetic data', zorder=1)
+    add_thin_gap_bars(axes[1], structured_gaps_continuous, color='green', alpha=1, step='2H')
+    axes[1].set_title('b) Synthetic data with structured gaps', fontsize=14)
+    axes[1].set_ylabel(f'LE [W/m²]', fontsize=14)
 
-# Create custom legend patches for the gaps
-structured_patch = Patch(color='green', label='Structured gaps', alpha=1)
-random_patch = Patch(color='orange', label='Random gaps', alpha=1)
+    # Subplot c: Synthetic data with random gaps
+    axes[2].plot(syn_ds['time'], syn_ds['LE'], color='blue', label='Synthetic data', zorder=1)
+    add_thin_gap_bars(axes[2], random_gaps_continuous, color='orange', alpha=1, step='2H')
+    axes[2].set_title('c) Synthetic data with random gaps', fontsize=14)
+    axes[2].set_ylabel(f'LE [W/m²]', fontsize=14)
+    axes[2].set_xlabel('Time', fontsize=14)
 
-# Add the custom legend patches to the relevant subplots
-axes[1].legend(
-    handles=[axes[1].lines[0], structured_patch],  # First handle: synthetic data line, second: structured gaps
-    labels=['Synthetic data', 'Structured gaps'],  # Corresponding labels
-    fontsize=14,
-    loc='upper right',
-    framealpha=0.95,
-)
-axes[2].legend(
-    handles=[axes[2].lines[0], random_patch],  # First handle: synthetic data line, second: random gaps
-    labels=['Synthetic data', 'Random gaps'],  # Corresponding labels
-    fontsize=14,
-    loc='upper right',
-    framealpha=0.95,
-)
+    # Create custom legend patches for the gaps
+    structured_patch = Patch(color='green', label='Structured gaps', alpha=1)
+    random_patch = Patch(color='orange', label='Random gaps', alpha=1)
 
-# Adjust layout and show the plot
-plt.tight_layout()
-plt.show()
+    # Add the custom legend patches to the relevant subplots
+    axes[1].legend(
+        handles=[axes[1].lines[0], structured_patch],  # First handle: synthetic data line, second: structured gaps
+        labels=['Synthetic data', 'Structured gaps'],  # Corresponding labels
+        fontsize=14,
+        loc='upper right',
+        framealpha=0.95,
+    )
+    axes[2].legend(
+        handles=[axes[2].lines[0], random_patch],  # First handle: synthetic data line, second: random gaps
+        labels=['Synthetic data', 'Random gaps'],  # Corresponding labels
+        fontsize=14,
+        loc='upper right',
+        framealpha=0.95,
+    )
+
+    # Adjust layout and show the plot
+    plt.tight_layout()
+    plt.show()
