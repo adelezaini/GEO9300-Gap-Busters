@@ -1,0 +1,15 @@
+Environment setup:
+
+The dependencies for running the code in this repository include:
+  - python=3.12
+  - scikit-learn
+  - ipykernel
+  - py-xgboost
+  - anaconda::pandas
+  - matplotlib
+  - seaborn
+  - numpy=1.26
+  - pip
+
+bartpy is installed from the following repository:
+https://github.com/JakeColtman/bartpy.git
