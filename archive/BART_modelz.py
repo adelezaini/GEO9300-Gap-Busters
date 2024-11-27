@@ -1,8 +1,6 @@
 
 # BART model setup
-bartpy_path = '/home/mlahlbac/projects/BART/bartpy/'
-# sys.path.append(os.path.abspath(bartpy_path))
-sys.path.append(os.path.abspath(bartpy_path))
+
 from bartpy.sklearnmodel import SklearnModel
 
 # BART model (assuming this is copy-pasted into the overall workflow script
