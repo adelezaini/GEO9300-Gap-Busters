@@ -2,9 +2,9 @@
 
 Six machine learning algorithms for gap-filling latent heat flux (LE) data in micrometeorological observations are evaluated. The gap-filling method is ispired by the work of Vekuri et al. (2023), testing the ML algorithms performance on a synthetic dataset with superimposed realistic gaps.
 
-This repository contains the code used for the course project *GEO9300: Geophysical Data Science* (2024)
+This repository contains the code used for the course project *GEO9300: Geophysical Data Science* (Univeristy of Oslo, 2024)
 
-**Contributors:** Malin Ahlbäck, Eivind Wiik Ånes, Adele Zaini.
+👩🏻‍💻 **Contributors:** Malin Ahlbäck, Eivind Wiik Ånes, Adele Zaini.
 
 ## Abstract
 
