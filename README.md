@@ -1,8 +1,10 @@
 # GEO9300 Gap-Busters: Comparative Analysis of Machine Learning Methods for Gap-Filling Micrometeorological Data
 
-This repository contains the code used for the course project *GEO9300: Geophysical Data Science* (2024). The project evaluates six machine learning algorithms for gap-filling latent heat flux (LE) data in micrometeorological observations. The gap-filling methods is ispired by the work of Vekuri et al. (2023), testing the ML algorithms performance on a synthetic dataset with superimposed realistic gaps.
+Six machine learning algorithms for gap-filling latent heat flux (LE) data in micrometeorological observations are evaluated. The gap-filling method is ispired by the work of Vekuri et al. (2023), testing the ML algorithms performance on a synthetic dataset with superimposed realistic gaps.
 
-**Authors:** Eivind Wiik Ånes, Malin Ahlbäck, Adele Zaini.
+This repository contains the code used for the course project *GEO9300: Geophysical Data Science* (2024)
+
+**Contributors:** Malin Ahlbäck, Eivind Wiik Ånes, Adele Zaini.
 
 ## Abstract
 
@@ -78,7 +80,12 @@ If you use this code, please cite the course project:
 
 **Ahlbäck, M., Ånes, E.W., & Zaini, A.** (2024). *Mind the Gap! A Comparative Analysis of Machine Learning Methods for Gap-Filling Micrometeorological Data.* GEO9300: Geophysical Data Science, University of Oslo.
 
+## Contributing
+
+🚧 Any contribution is welcome! Please open [pull requests](https://github.com/adelezaini/GEO9300-Gap-Busters/pulls) or use the [issue tracker](https://github.com/adelezaini/GEO9300-Gap-Busters/issues) to report, comment and suggest.
+
+
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+📋 The code is released under the terms of the [MIT Licence](https://opensource.org/licenses/MIT). See the file [LICENSE.md](https://github.com/adelezaini/GEO9300-Gap-Busters/blob/master/LICENSE.md).
 
