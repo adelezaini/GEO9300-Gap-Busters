@@ -1,6 +1,6 @@
 # GEO9300 Gap-Busters: Comparative Analysis of Machine Learning Methods for Gap-Filling Micrometeorological Data
 
-🚧 Cleaning and restructuring the code in progress 🚧
+🚧 *Cleaning and refining the code in progress* 🚧
 
 Six machine learning algorithms for gap-filling latent heat flux (LE) data in micrometeorological observations are evaluated. The gap-filling method is ispired by the work of Vekuri et al. (2023), testing the ML algorithms performance on a synthetic dataset with superimposed realistic gaps.
 
