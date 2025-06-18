@@ -6,6 +6,7 @@ import os
 from scipy.stats import skew, normaltest
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import matplotlib.pyplot as plt
+from adaptive_scaling import adaptive_scaling
 
 # Script workflow:
 # - load data
