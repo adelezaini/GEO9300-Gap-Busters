@@ -33,3 +33,9 @@ Assumptions: (TBD)
 
 Designed by: Malin Ahlbäck, Eivind W. Ånes, Adele Zaini
 Developped by: Adele Zaini by the help of Perplexity.ai and ChatGPT
+
+Usage:
+python generate_input_variables.py
+python generate_cloud_fraction.py
+python generate_snow_cover.py
+python generate_output_variables.py
